@@ -56,13 +56,13 @@ class ScoreFragment : Fragment() {
         viewModel = ViewModelProvider(this, viewModelFactory)
             .get(ScoreViewModel::class.java)
 
-        // set-up observers to viewModel data (LiveData)
+        // connect viewModel to layout data variable "scoreViewModel"
+        binding.scoreViewModel = viewModel
+
+        // observe score (maintained in view model)
         viewModel.score.observe(viewLifecycleOwner, { binding.scoreText.text = it.toString()  })
 
-        // install listener for playAgain button -> listener now only a setter for flag in ViewModel
-        binding.playAgainButton.setOnClickListener { viewModel.onPlayAgain() }
-
-        // observe playAgain event flag
+        // observe playAgain event flag (maintained in view model)
         viewModel.eventPlayAgain.observe(
             viewLifecycleOwner,
             {

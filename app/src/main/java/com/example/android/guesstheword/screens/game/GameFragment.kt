@@ -54,12 +54,8 @@ class GameFragment : Fragment() {
             .get(GameViewModel::class.java)
         Log.i("GameFragment", "Established connection to viewModel")
 
-        binding.correctButton.setOnClickListener {
-            viewModel.onCorrect()
-        }
-        binding.skipButton.setOnClickListener {
-            viewModel.onSkip()
-        }
+        // connect viewModel to layout data variable "gameViewModel"
+        binding.gameViewModel = viewModel
 
         // set-up observers to viewModel data (LiveData)
         viewModel.score.observe(viewLifecycleOwner, { binding.scoreText.text = it.toString()  })
