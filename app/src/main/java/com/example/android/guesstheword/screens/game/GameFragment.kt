@@ -50,7 +50,8 @@ class GameFragment : Fragment() {
         )
 
         // establish connection to (possibly already existing) viewModel
-        viewModel =  ViewModelProvider(this).get(GameViewModel::class.java)
+        viewModel =  ViewModelProvider(this)
+            .get(GameViewModel::class.java)
         Log.i("GameFragment", "Established connection to viewModel")
 
         binding.correctButton.setOnClickListener {
