@@ -23,16 +23,33 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 
+// buzzer patterns (delay, duration, delay, ...)
+private val CORRECT_BUZZ_PATTERN = longArrayOf(100, 100, 100, 100, 100, 100)
+private val PANIC_BUZZ_PATTERN = longArrayOf(0, 200)
+private val GAME_OVER_BUZZ_PATTERN = longArrayOf(0, 2000)
+private val NO_BUZZ_PATTERN = longArrayOf(0)
+
 class GameViewModel: ViewModel() {
 
+    // buzzer
+    enum class BuzzType(val pattern: LongArray) {
+        CORRECT(CORRECT_BUZZ_PATTERN),
+        GAME_OVER(GAME_OVER_BUZZ_PATTERN),
+        COUNTDOWN_PANIC(PANIC_BUZZ_PATTERN),
+        NO_BUZZ(NO_BUZZ_PATTERN)
+    }
+
+    // timer
     companion object {
         // These represent different important times
         // This is when the game is over
         const val DONE = 0L
         // This is the number of milliseconds in a second
         const val ONE_SECOND = 1000L
+        // This is the "panic" time of the game
+        const val COUNTDOWN_PANIC_SECONDS = 5000L
         // This is the total time of the game
-        const val COUNTDOWN_TIME = 10000L
+        const val COUNTDOWN_TIME = 20000L
     }
 
     // declare timer variable
@@ -49,6 +66,10 @@ class GameViewModel: ViewModel() {
     // The current "game finished" state
     private var _eventGameFinish = MutableLiveData<Boolean>()
     val eventGameFinish:LiveData<Boolean> get() = _eventGameFinish
+
+    // The current "buzz" event
+    private var _eventBuzz = MutableLiveData<BuzzType>()
+    val eventBuzz:LiveData<BuzzType> get() = _eventBuzz
 
     // The current timer value
     private var _currentTime = MutableLiveData<Long>()
@@ -69,6 +90,7 @@ class GameViewModel: ViewModel() {
         _score.value = 0
         _word.value = wordList.removeAt(0)
         _eventGameFinish.value = false
+        _eventBuzz.value = BuzzType.NO_BUZZ
         _currentTime.value = COUNTDOWN_TIME
 
         // create timer object
@@ -77,11 +99,21 @@ class GameViewModel: ViewModel() {
             override fun onTick(millisUntilFinished: Long) {
                 // set timer display value to remainder of timer (arg)
                 _currentTime.value = millisUntilFinished / ONE_SECOND
+
+                // during "panic" time (last 5 seconds) the panic buzzer is sounded
+                if (millisUntilFinished / ONE_SECOND <= COUNTDOWN_PANIC_SECONDS) {
+                    _eventBuzz.value = BuzzType.COUNTDOWN_PANIC
+                }
             }
 
             override fun onFinish() {
                 // set timer value to "0" (is this really needed?!)
                 _currentTime.value = DONE
+
+                // game over buzzer
+                _eventBuzz.value = BuzzType.GAME_OVER
+
+                // signal game over (to fragment) --> triggers transition
                 _eventGameFinish.value = true
             }
         }
@@ -141,11 +173,16 @@ class GameViewModel: ViewModel() {
 
     fun onCorrect() {
         _score.value = (_score.value)?.plus(1)
+        _eventBuzz.value = BuzzType.CORRECT
         nextWord()
     }
 
     fun onGameFinishComplete() {
         _eventGameFinish.value = false
+    }
+
+    fun onBuzzComplete() {
+        _eventBuzz.value = BuzzType.NO_BUZZ
     }
 
     override fun onCleared() {
