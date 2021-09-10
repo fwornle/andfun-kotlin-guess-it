@@ -57,9 +57,10 @@ class GameFragment : Fragment() {
         // connect viewModel to layout data variable "gameViewModel"
         binding.gameViewModel = viewModel
 
+        // make this binding lifecycle aware... to the lifecycle of the GameFragment (this)
+        binding.setLifecycleOwner(this)
+
         // set-up observers to viewModel data (LiveData)
-        viewModel.score.observe(viewLifecycleOwner, { binding.scoreText.text = it.toString()  })
-        viewModel.word.observe(viewLifecycleOwner, { binding.wordText.text = it  })
         viewModel.eventGameFinish.observe(
             viewLifecycleOwner,
             {
@@ -68,12 +69,6 @@ class GameFragment : Fragment() {
                     // signal viewModel that the game over transition has happened (-> reset event)
                     viewModel.onGameFinishComplete()
                 }
-            },
-        )
-        viewModel.currentTime.observe(
-            viewLifecycleOwner,
-            {
-                binding.timerText.text = DateUtils.formatElapsedTime(it)
             },
         )
 

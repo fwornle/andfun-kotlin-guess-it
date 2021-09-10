@@ -59,8 +59,8 @@ class ScoreFragment : Fragment() {
         // connect viewModel to layout data variable "scoreViewModel"
         binding.scoreViewModel = viewModel
 
-        // observe score (maintained in view model)
-        viewModel.score.observe(viewLifecycleOwner, { binding.scoreText.text = it.toString()  })
+        // make this binding lifecycle aware... to the lifecycle of the ScoreFragment (this)
+        binding.setLifecycleOwner(this)
 
         // observe playAgain event flag (maintained in view model)
         viewModel.eventPlayAgain.observe(
